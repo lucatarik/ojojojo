@@ -1,0 +1,14 @@
+{
+    "name": "vendor/integration",
+    "description": "Description of project integration.",
+    "authors": [
+        {
+            "name": "a.namici",
+            "email": "your@email.here"
+        }
+    ],
+    "require": {
+        "google/apiclient": "^2.0",
+        "asimlqt/php-google-spreadsheet-client": "3.0.*"
+    }
+}
