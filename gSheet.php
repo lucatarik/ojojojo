@@ -107,22 +107,6 @@ try {
     }
 }
 
-$service = new Google_Service_Sheets($client);
-
-use Google\Spreadsheet\DefaultServiceRequest;
-use Google\Spreadsheet\ServiceRequestFactory;
-echo "\\n\n\n\n\n\n";
-$token = $client->getOAuth2Service()->getAccessToken();
-var_dump($token);
-$serviceRequest = new DefaultServiceRequest($token);
-ServiceRequestFactory::setInstance($serviceRequest);
-
-$spreadsheetService = new Google\Spreadsheet\SpreadsheetService();
-$spreadsheetFeed = $spreadsheetService->getSpreadsheetFeed();
-$feeds = $spreadsheetFeed->getEntries();
-
-var_dump($feeds);
-
 
 // Prints the names and majors of students in a sample spreadsheet:
 // https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit

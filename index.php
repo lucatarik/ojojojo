@@ -20,11 +20,11 @@
             var CLIENT_ID = '857416814607-pv9fjh0mtblrcounjd5qrm9sdg3tle6m.apps.googleusercontent.com';
 
             // Array of API discovery doc URLs for APIs used by the quickstart
-            var DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
+            var DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4", "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
 
             // Authorization scopes required by the API; multiple scopes can be
             // included, separated by spaces.
-            var SCOPES = "https://www.googleapis.com/auth/spreadsheets.readonly";
+            var SCOPES = "https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/drive.metadata.readonly";
 
             var authorizeButton = document.getElementById('authorize-button');
             var signoutButton = document.getElementById('signout-button');
@@ -64,6 +64,7 @@
                 if (isSignedIn) {
                     authorizeButton.style.display = 'none';
                     signoutButton.style.display = 'block';
+                    listFiles();
                 } else {
                     authorizeButton.style.display = 'block';
                     signoutButton.style.display = 'none';
@@ -94,8 +95,7 @@
              */
             function appendPre(message) {
                 var pre = document.getElementById('content');
-                var textContent = document.createTextNode(message + '\n');
-                pre.appendChild(textContent);
+                $(pre).append(message+"<br>");
             }
 
             /**
@@ -105,14 +105,18 @@
             function getSpridShit(id) {
                 gapi.client.sheets.spreadsheets.values.get({
                     spreadsheetId: id,
+                    range: "A1:Z999",
+                    "majorDimension": "COLUMNS",
+
                 }).then(function (response) {
                     var range = response.result;
+                    ress = response;
+
                     if (range.values.length > 0) {
-                        appendPre('Name, Major:');
-                        for (i = 0; i < range.values.length; i++) {
+                        for (var i = 0; i < range.values.length; i++) {
                             var row = range.values[i];
                             // Print columns A and E, which correspond to indices 0 and 4.
-                            appendPre(row[0] + ', ' + row[4]);
+                            appendPre(row.join(', '));
                         }
                     } else {
                         appendPre('No data found.');
@@ -130,18 +134,45 @@
                     $('#signinButton').attr('style', 'display: none');
 
                     // Send the code to the server
-                    $.post("gSheet.php",{"code":authResult['code']});
+                    $.post("gSheet.php", {"code": authResult['code']});
                 } else {
                     // There was an error.
                 }
             }
 
+            /**
+             * Print files.
+             */
+            function listFiles() {
+                gapi.client.drive.files.list({
+                    'pageSize': 10,
+                    'fields': "nextPageToken, files(id, name)",
+                    'q': "mimeType='application/vnd.google-apps.spreadsheet'"
+                }).then(function (response) {
+                    appendPre('Files:');
+                    var files = response.result.files;
+                    if (files && files.length > 0) {
+                        for (var i = 0; i < files.length; i++) {
+                            var file = files[i];
+                            appendPre('<span class="openFile" data-id="' + file.id + '">'+file.name + ' (' + file.id + ')</span>');
+                        }
+                        $('.openFile').unbind('click').bind("click",function()
+                        {
+                            getSpridShit($(this).data('id'));
+                        });
+                    } else {
+                        appendPre('No files found.');
+                    }
+                });
+            }
+
+
         </script>
 
         <script async defer src="https://apis.google.com/js/api.js"
                 onload="this.onload = function () {
-            };
-            handleClientLoad()"
+                };
+                handleClientLoad()"
                 onreadystatechange="if (this.readyState === 'complete') this.onload()">
         </script>
     </body>
