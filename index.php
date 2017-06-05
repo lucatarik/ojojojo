@@ -46,13 +46,23 @@
                     clientId: CLIENT_ID,
                     scope: SCOPES
                 }).then(function () {
-                    // Listen for sign-in state changes.
-                    gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+                    $.getJSON('gSheet.php').then(function (data)
+                    {
+                        console.log(data);
+                        if (data.hasOwnProperty("access_token"))
+                        {
+                            gapi.auth.setToken(data);
+                            gapi.auth2.getAuthInstance().isSignedIn.set(true);
+                        }
+                        // Listen for sign-in state changes.
+                        gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
 
-                    // Handle the initial sign-in state.
-                    updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
-                    authorizeButton.onclick = handleAuthClick;
-                    signoutButton.onclick = handleSignoutClick;
+                        // Handle the initial sign-in state.
+                        updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+                        authorizeButton.onclick = handleAuthClick;
+                        signoutButton.onclick = handleSignoutClick;
+                    })
+
                 });
             }
 
@@ -62,8 +72,6 @@
              */
             function updateSigninStatus(isSignedIn) {
                 if (isSignedIn) {
-                    authorizeButton.style.display = 'none';
-                    signoutButton.style.display = 'block';
                     listFiles();
                 } else {
                     authorizeButton.style.display = 'block';
@@ -95,7 +103,7 @@
              */
             function appendPre(message) {
                 var pre = document.getElementById('content');
-                $(pre).append(message+"<br>");
+                $(pre).append(message + "<br>");
             }
 
             /**
@@ -107,7 +115,6 @@
                     spreadsheetId: id,
                     range: "A1:Z999",
                     "majorDimension": "COLUMNS",
-
                 }).then(function (response) {
                     var range = response.result;
                     ress = response;
@@ -154,15 +161,47 @@
                     if (files && files.length > 0) {
                         for (var i = 0; i < files.length; i++) {
                             var file = files[i];
-                            appendPre('<span class="openFile" data-id="' + file.id + '">'+file.name + ' (' + file.id + ')</span>');
+                            appendPre('<span class="openFile" data-id="' + file.id + '">' + file.name + ' (' + file.id + ')</span>');
                         }
-                        $('.openFile').unbind('click').bind("click",function()
+                        $('.openFile').unbind('click').bind("click", function ()
                         {
                             getSpridShit($(this).data('id'));
                         });
                     } else {
                         appendPre('No files found.');
                     }
+                });
+            }
+
+
+
+            // function load the calendar api and make the api call
+            function makeApiCall(today) {
+                var resource = {
+                    "summary": "Sample Event " + Math.floor((Math.random() * 10) + 1),
+                    "start": {
+                        "dateTime": today
+                    },
+                    "end": {
+                        "dateTime": today
+                    }
+                };
+                gapi.client.calendar.events.insert({
+                    'calendarId': 'primary', // calendar ID
+                    "resource": resource							// pass event details with api call
+                }).then(function (resp) {
+                    if (resp.status == 'confirmed') {
+                        appendPre("Event created successfully. View it <a href='" + resp.htmlLink + "'>online here</a>.");
+                    } else {
+                        appendPre("There was a problem. Reload page and try again.");
+                    }
+                    /* for (var i = 0; i < resp.items.length; i++) {		// loop through events and write them out to a list
+                     var li = document.createElement('li');
+                     var eventInfo = resp.items[i].summary + ' ' +resp.items[i].start.dateTime;
+                     li.appendChild(document.createTextNode(eventInfo));
+                     document.getElementById('events').appendChild(li);
+                     } */
+                    console.log(resp);
                 });
             }
 

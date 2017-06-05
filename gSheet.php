@@ -62,8 +62,7 @@ function getAccessToken($authCode) {
         mkdir(dirname($credentialsPath), 0700, true);
     }
     file_put_contents($credentialsPath, json_encode($accessToken));
-    printf("Credentials saved to %s\n", $credentialsPath);
-    var_dump($accessToken);
+    //printf("Credentials saved to %s\n", $credentialsPath);
     $client->setAccessToken($accessToken);
 
     // Refresh the token if it's expired.
@@ -102,26 +101,9 @@ try {
     }
     else
     {
-        echo $exc->getTraceAsString();
+        echo json_encode(array("error"=>$exc->getTraceAsString()));
         die();
     }
 }
 
-
-// Prints the names and majors of students in a sample spreadsheet:
-// https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
-$spreadsheetId = '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms';
-$range = 'Class Data!A2:E';
-$response = $service->spreadsheets_values->get($spreadsheetId, $range);
-$values = $response->getValues();
-
-if (count($values) == 0) {
-    print "No data found.\n";
-} else {
-    print "Name, Major:\n";
-    foreach ($values as $row) {
-        // Print columns A and E, which correspond to indices 0 and 4.
-        printf("%s, %s\n", $row[0], $row[4]);
-    }
-}
-
+echo json_encode($client->getAccessToken());
